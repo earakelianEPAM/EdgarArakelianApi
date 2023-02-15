@@ -7,25 +7,23 @@ import java.util.Properties;
 
 public class Config {
 
-    private static final String TEST_DATA = "src/test/resources/testData";
+    private final Properties propertyFile;
 
-    public static Properties getPropertyObject() {
-        Properties properties = new Properties();
-        String path = new File(TEST_DATA).getAbsolutePath();
+    public Config(String pathToProperty) {
+        propertyFile = new Properties();
+        String path = new File(pathToProperty).getAbsolutePath();
         try (FileInputStream fileInputStream = new FileInputStream(path)) {
-            properties.load(fileInputStream);
-            fileInputStream.close();
+            propertyFile.load(fileInputStream);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return properties;
     }
 
-    public static String getApiKey() {
-        return getPropertyObject().getProperty("key");
+    public String getApiKey() {
+        return propertyFile.getProperty("key");
     }
 
-    public static String getApiToken() {
-        return getPropertyObject().getProperty("token");
+    public String getApiToken() {
+        return propertyFile.getProperty("token");
     }
 }

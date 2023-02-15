@@ -5,5 +5,5 @@ import lombok.Builder;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Builder
-public record CardEntity(String id, String name) {
+public record CardEntity (String id, String name) implements Trello {
 }

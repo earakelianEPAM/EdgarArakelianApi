@@ -1,5 +1,6 @@
 package com.epam.tc.hw9;
 
+import com.epam.entities.BoardEntity;
 import com.epam.entities.CardEntity;
 import com.epam.entities.ListEntity;
 import org.testng.annotations.AfterClass;
@@ -22,19 +23,20 @@ public class CardsTests extends BaseTest {
 
     @BeforeClass
     protected void createBoardWithList() {
-        board = createBoard(boardName);
+        params.clear();
+        params.put("name", boardName);
+        board = sendPostRequest(params, Endpoint.BOARD)
+                .then()
+                .extract().body().as(BoardEntity.class);
         listEntity = createListOnTheBoard(board.id(), listName);
     }
 
     @BeforeMethod
     protected void beforeCreateCard() {
-        cardEntity = given()
-                .spec(requestSpec)
-                .when()
-                .queryParam("idList", listEntity.id())
-                .queryParam("name", cardName)
-                .basePath(Endpoint.CARD)
-                .post()
+        params.clear();
+        params.put("idList", listEntity.id());
+        params.put("name", cardName);
+        cardEntity = sendPostRequest(params, Endpoint.CARD)
                 .then()
                 .body("name", equalTo(cardName))
                 .log().all()
@@ -44,18 +46,15 @@ public class CardsTests extends BaseTest {
 
     @AfterClass
     protected void deleteBoard() {
-        deleteBoard(board.id());
+        sendDeleteRequestAndCheck(board.id(), Endpoint.BOARD_ID);
     }
 
     @Test(description = "adding new card")
     protected void addNewCard() {
-        cardEntity = given()
-                .spec(requestSpec)
-                .when()
-                .queryParam("idList", listEntity.id())
-                .queryParam("name", cardName)
-                .basePath(Endpoint.CARD)
-                .post()
+        params.clear();
+        params.put("idList", listEntity.id());
+        params.put("name", cardName);
+        cardEntity = sendPostRequest(params, Endpoint.CARD)
                 .then()
                 .body("name", equalTo(cardName))
                 .spec(responseSpec)
@@ -65,13 +64,9 @@ public class CardsTests extends BaseTest {
     @Test(description = "updating card")
     protected void updateCard() {
         var cardNew = CardEntity.builder().name(cardName).id(cardEntity.id()).build();
-
-        cardEntity = given()
-                .spec(requestSpec)
-                .when().basePath(Endpoint.CARD_ID)
-                .pathParam("id", cardEntity.id())
-                .body(cardNew)
-                .put()
+        params.clear();
+        params.put("id", cardEntity.id());
+        cardEntity = sendPutRequest(params, Endpoint.CARD_ID, cardNew)
                 .then()
                 .body("name", equalTo(cardName))
                 .log().all()
@@ -81,11 +76,9 @@ public class CardsTests extends BaseTest {
 
     @Test(description = "get information about card")
     protected void getCard() {
-        cardEntity = given()
-                .spec(requestSpec)
-                .when().basePath(Endpoint.CARD_ID)
-                .pathParam("id", cardEntity.id())
-                .get()
+        params.clear();
+        params.put("id", cardEntity.id());
+        cardEntity = sendGetRequest(params, Endpoint.CARD_ID)
                 .then()
                 .spec(responseSpec)
                 .body("name", startsWith(cardName))
@@ -94,11 +87,6 @@ public class CardsTests extends BaseTest {
 
     @Test(description = "deletion card")
     protected void deleteCard() {
-        given()
-                .spec(requestSpec)
-                .when().pathParam("id", cardEntity.id())
-                .delete(Endpoint.CARD_ID)
-                .then()
-                .spec(responseSpec);
+        sendDeleteRequestAndCheck(cardEntity.id(), Endpoint.CARD_ID);
     }
 }

@@ -2,6 +2,8 @@ package com.epam.tc.hw9;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
+
+import com.epam.entities.BoardEntity;
 import com.epam.entities.CardEntity;
 import com.epam.entities.CheckListEntity;
 import com.epam.entities.ListEntity;
@@ -24,19 +26,21 @@ public class CheckListTest extends BaseTest {
 
     @BeforeClass
     protected void createBoardWithCard() {
-        board = createBoard(boardName);
+        params.clear();
+        params.put("name", boardName);
+        board = sendPostRequest(params, Endpoint.BOARD)
+                .then()
+                .extract().body().as(BoardEntity.class);
         listEntity = createListOnTheBoard(board.id(), listName);
         cardEntity = createCardInTheList(listEntity.id(), cardName);
     }
 
     @BeforeMethod
     protected void createCheckList() {
-        checkListEntity = given()
-                .spec(requestSpec)
-                .when()
-                .queryParam("idCard", cardEntity.id())
-                .queryParam("name", checkListName)
-                .post(Endpoint.CHECKLISTS)
+        params.clear();
+        params.put("idCard", cardEntity.id());
+        params.put("name", checkListName);
+        checkListEntity = sendPostRequest(params, Endpoint.CHECKLISTS)
                 .then()
                 .spec(responseSpec)
                 .extract().body().as(CheckListEntity.class);
@@ -44,12 +48,10 @@ public class CheckListTest extends BaseTest {
 
     @Test(description = "adding new checklist")
     protected void addCheckList() {
-        checkListEntity = given()
-                .spec(requestSpec)
-                .when()
-                .queryParam("idCard", cardEntity.id())
-                .queryParam("name", checkListName)
-                .post(Endpoint.CHECKLISTS)
+        params.clear();
+        params.put("idCard", cardEntity.id());
+        params.put("name", checkListName);
+        checkListEntity = sendPostRequest(params, Endpoint.CHECKLISTS)
                 .then()
                 .body("name", equalTo(checkListName))
                 .log().all()
@@ -60,12 +62,9 @@ public class CheckListTest extends BaseTest {
     @Test(description = "updating checkList")
     protected void updateCheckList() {
         var checkListNew = CheckListEntity.builder().name(checkListNameUpdated).id(checkListEntity.id()).build();
-        cardEntity = given()
-                .spec(requestSpec)
-                .when().basePath(Endpoint.CHECKLISTS_ID)
-                .pathParam("id", checkListEntity.id())
-                .body(checkListNew)
-                .put()
+        params.clear();
+        params.put("id", checkListEntity.id());
+        cardEntity = sendPutRequest(params, Endpoint.CHECKLISTS_ID, checkListNew)
                 .then()
                 .body("name", equalTo(checkListNameUpdated))
                 .log().all()
@@ -75,18 +74,12 @@ public class CheckListTest extends BaseTest {
 
     @Test(description = "deletion checklist")
     protected void deleteCheckList() {
-        given()
-                .spec(requestSpec)
-                .when()
-                .pathParam("id", checkListEntity.id())
-                .delete(Endpoint.CHECKLISTS_ID)
-                .then()
-                .spec(responseSpec);
+        sendDeleteRequestAndCheck(checkListEntity.id(), Endpoint.CHECKLISTS_ID);
 
     }
 
     @AfterClass
     protected void deleteBoard() {
-        deleteBoard(board.id());
+        sendDeleteRequestAndCheck(board.id(), Endpoint.BOARD_ID);
     }
 }
