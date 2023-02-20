@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="HW9">
+    <test name="HW9">
+        <classes>
+            <class name="com.epam.tc.hw9.BoardTests"/>
+            <class name="com.epam.tc.hw9.CardsTests"/>
+            <class name="com.epam.tc.hw9.CheckListTest"/>
+        </classes>
+    </test>
+</suite>
